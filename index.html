@@ -71,6 +71,14 @@
 
 
         <script>
+            $(document).ready(function () {
+            $('#cnpj').mask('00.000.000/0000-00');
+        });
+
+        function validateCnpj(cnpj) {
+            return /^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$/.test(cnpj);
+        }
+        
         async function checkCnpj() {
             const cnpj = document.getElementById('cnpj').value.replace(/[^0-9]/g, '');
 
