@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+        <title>Consulta CNPJ</title>
+    </head>
+    <body>
+        <nav class="navbar bg-black">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <img src="./logo-white.png" alt="logo" width="180">
+                </a>
+            </div>
+        </nav>
+        <div class="container mt-4">
+            <h2 class="mb-3">Consulte o CNPJ</h2>
+            <p>Digite o cnpj abaixo e consulte as informações necessárias para cadastro no sistema e se já possui algum de nossos serviços.</p>
+            <form id="cnpjForm">
+                <div class="row mb-3">
+                    <div class="col-md-9">
+                        <label for="cnpj" class="form-label">CNPJ</label>
+                        <input type="text" class="form-control" id="cnpj"
+                            placeholder="00.000.000/0000-00" required>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary w-100"
+                            onclick="checkCnpj()">Consultar</button>
+                    </div>
+                </div>
+            </form>
+            <div id="loading" class="alert alert-info d-none">Consultando
+                CNPJ...</div>
+            <div id="error" class="alert alert-danger d-none"></div>
+            <div id="alertCnpjInfo" class="alert alert-success d-none">
+                <h5>Informações do CNPJ consultado:</h5>
+                <p style="margin-bottom: 0;"><strong>Razão Social:</strong>
+                    <span id="razaosocial-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>Nome Fantasia:</strong>
+                    <span id="nomefantasia-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>CNPJ:</strong> <span
+                        id="cnpj-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>E-mail:</strong> <span
+                        id="email-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>Telefone:</strong> <span
+                        id="telefone-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>Endereço:</strong> <span
+                        id="endereco-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>Bairro:</strong> <span
+                        id="bairro-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>Cidade:</strong> <span
+                        id="cidade-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>Estado:</strong> <span
+                        id="estado-alert"></span></p>
+                <p style="margin-bottom: 0;"><strong>CEP:</strong> <span
+                        id="cep-alert"></span></p>
+                <h5 class="mt-3">Serviços e Status:</h5>
+                <p><strong>Power CRM:</strong> <span
+                        id="power-crm-alert"></span> | <strong>Status:</strong> <span
+                        id="status-crm-alert"></span></p>
+                <p><strong>Power SIGN:</strong> <span
+                        id="power-sign-alert"></span> | <strong>Status:</strong> <span
+                        id="status-sign-alert"></span></p>
+                <hr style="margin-bottom: 0;">
+                <button class="btn btn-outline-primary mt-3" onclick="copyToClipboard()">Copiar</button>
+            </div>
+        </div>
+
+
+        <script>
+        async function checkCnpj() {
+            const cnpj = document.getElementById('cnpj').value.replace(/[^0-9]/g, '');
+
+            if (!cnpj.match(/^\d{14}$/)) {
+                document.getElementById('error').innerText = 'CNPJ inválido.';
+                document.getElementById('error').classList.remove('d-none');
+                return;
+            }
+
+            document.getElementById('loading').classList.remove('d-none');
+            document.getElementById('error').classList.add('d-none');
+
+            try {
+                // Consulta API para informações gerais do CNPJ
+                const cnpjData = await fetch(`https://consultcnpj.onrender.com/api/cnpj/${cnpj}`).then(res => res.json());
+
+                // Consulta planilha para informações adicionais
+                const planilhaData = await fetch(`https://consultcnpj.onrender.com/api/planilha/${cnpj}`).then(res => {
+                    if (!res.ok) throw new Error('CNPJ não encontrado na base de dados.');
+                    return res.json();
+                });
+
+                // Preencher informações no alerta
+                document.getElementById('razaosocial-alert').innerText = cnpjData.nome || 'Não disponível';
+                document.getElementById('nomefantasia-alert').innerText = cnpjData.fantasia || 'Não disponível';
+                document.getElementById('cnpj-alert').innerText = cnpjData.cnpj || 'Não disponível';
+                document.getElementById('email-alert').innerText = cnpjData.email || 'Não disponível';
+                document.getElementById('telefone-alert').innerText = cnpjData.telefone || 'Não disponível';
+                document.getElementById('endereco-alert').innerText = cnpjData.logradouro || 'Não disponível';
+                document.getElementById('bairro-alert').innerText = cnpjData.bairro || 'Não disponível';
+                document.getElementById('cidade-alert').innerText = cnpjData.municipio || 'Não disponível';
+                document.getElementById('estado-alert').innerText = cnpjData.uf || 'Não disponível';
+                document.getElementById('cep-alert').innerText = cnpjData.cep || 'Não disponível';
+
+                document.getElementById('power-crm-alert').innerText = planilhaData.powerCRM || 'Não disponível';
+                document.getElementById('status-crm-alert').innerText = planilhaData.statusCRM || 'Não disponível';
+                document.getElementById('power-sign-alert').innerText = planilhaData.powerSign || 'Não disponível';
+                document.getElementById('status-sign-alert').innerText = planilhaData.statusSign || 'Não disponível';
+
+                document.getElementById('alertCnpjInfo').classList.remove('d-none');
+            } catch (error) {
+                document.getElementById('error').innerText = error.message || 'Erro ao consultar o CNPJ.';
+                document.getElementById('error').classList.remove('d-none');
+            } finally {
+                document.getElementById('loading').classList.add('d-none');
+            }
+        }
+
+        function copyToClipboard() {
+            const alertDiv = document.getElementById('alertCnpjInfo');
+            const range = document.createRange();
+            range.selectNode(alertDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            alert('Informações copiadas para a área de transferência!');
+        }
+    </script>
+    </body>
+</html>
