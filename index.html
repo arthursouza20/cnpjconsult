@@ -85,10 +85,10 @@
 
             try {
                 // Consulta API para informações gerais do CNPJ
-                const cnpjData = await fetch(`https://consultcnpj.onrender.com/api/cnpj/${cnpj}`).then(res => res.json());
+                const cnpjData = await fetch(`https://cnpjconsultbackend.onrender.com/api/cnpj/${cnpj}`).then(res => res.json());
 
                 // Consulta planilha para informações adicionais
-                const planilhaData = await fetch(`https://consultcnpj.onrender.com/api/planilha/${cnpj}`).then(res => {
+                const planilhaData = await fetch(`https://cnpjconsultbackend.onrender.com/api/planilha/${cnpj}`).then(res => {
                     if (!res.ok) throw new Error('CNPJ não encontrado na base de dados.');
                     return res.json();
                 });
